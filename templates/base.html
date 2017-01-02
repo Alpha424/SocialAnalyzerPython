@@ -1,0 +1,35 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-theme.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="{% static 'js/bootstrap.js' %}"></script>
+</head>
+<body>
+{% include 'navbar.html' %}
+<div class="col-md-12">
+     {% block extra-content-top %}
+     {% endblock %}
+     <div class="panel panel-default">
+         <div class="panel-heading">
+             {% block panel-header %}
+             {% endblock %}
+         </div>
+         <div class="panel-body">
+             {% block panel-body %}
+             {% endblock %}
+         </div>
+         <div class="panel-footer">
+             {% block panel-footer %}
+             {% endblock %}
+         </div>
+     </div>
+    {% block extra-content-bottom %}
+    {% endblock %}
+</div>
+</body>
+</html>
