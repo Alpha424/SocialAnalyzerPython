@@ -6,6 +6,9 @@
     {% block title %}Начало{% endblock %}
 </head>
 <body>
+{% block breadcrumb %}
+    <li><a href="{% url 'start' %}">Загрузка файла</a></li>
+{% endblock %}
 {% block extra-content-top %}
     {% if error %}
         <div class="alert alert-danger">
@@ -25,7 +28,6 @@
 {% endblock %}
 {% block panel-footer %}
     <button type="submit" class="btn btn-primary btn-sm">Загрузить</button>
-    <button type="reset" class="btn btn-default btn-sm">Сбросить</button>
     </form>
 {% endblock %}
 </body>

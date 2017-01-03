@@ -19,7 +19,8 @@ from thaidanalyzer import views
 
 urlpatterns = [
     # url(r'^admin/', admin.site.urls),
-    #fak
-url(r'^$', views.default_page, name='default_page'),
-url(r'^start/$', views.start, name='start')
+    url(r'^$', views.default_page, name='default_page'),
+    url(r'^start/$', views.start, name='start'),
+    url(r'^enterattributes/$', views.enterattributes, name='enterattributes'),
+    url(r'^selectkeyattribute/$', views.selectkeyattribute, name='selectkeyattribute')
 ]

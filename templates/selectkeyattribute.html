@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block title %}Выбор ключевого признака{% endblock %}
+</head>
+<body>
+{% block breadcrumb %}
+    <li><a href="{% url 'start' %}">Загрузка файла</a></li>
+    <li><a href="{% url 'enterattributes' %}">Ввод имён признаков</a></li>
+    <li><a href="{% url 'selectkeyattribute' %}">Выбор ключевого признака</a></li>
+{% endblock %}
+{% block panel-header %}
+    <h3 class="panel-title">Шаг 3 - выбор ключевого признака</h3>
+{% endblock %}
+{% block panel-body %}
+    <form action="{% url 'selectkeyattribute' %}" method="post">{% csrf_token %}
+    <p>Необходимо выбрать ключевой признак (ответ респондента)</p>
+    <select class="form-control" name="keyattribute">
+    {% for a in attributes %}
+        <option value="{{ a }}">{{ a }}</option>
+    {% endfor %}
+    </select>
+{% endblock %}
+{% block panel-footer %}
+    <button type="submit" class="btn btn-primary btn-sm" name="sb" value="proceed">Далее</button>
+    </form>
+{% endblock %}
+</body>
+</html>

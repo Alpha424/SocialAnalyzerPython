@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block title %}Ввод имён признаков{% endblock %}
+</head>
+<body>
+{% block breadcrumb %}
+    <li><a href="{% url 'start' %}">Загрузка файла</a></li>
+    <li><a href="{% url 'enterattributes' %}">Ввод имён признаков</a></li>
+{% endblock %}
+{% block extra-content-top %}
+    {% if error %}
+        <div class="alert alert-danger">
+            <strong>Ошибка: </strong> {{ error }}
+        </div>
+    {% endif %}
+{% endblock %}
+{% block panel-header %}
+    <h3 class="panel-title">Шаг 2 - ввод имен признаков</h3>
+{% endblock %}
+{% block panel-body %}
+    <form action="{% url 'enterattributes' %}" method="post">{% csrf_token %}
+    <table class="table">
+        {% for value in firstrowvalues %}
+            <tr>
+            <td>Признак {{ forloop.counter }}</td>
+            <td><input type="text" class="form-control" name="attribute{{ forloop.counter0 }}" value="{% if usefirstrowvalues %}{{ value }}{% endif %}" {% if usefirstrowvalues %}readonly{% endif %}></td>
+            </tr>
+        {% endfor %}
+    </table>
+    <div class="checkbox">
+      <label><input type="checkbox" name="checkbox" value="usefirstrowvalues" onchange="this.form.submit();" {% if usefirstrowvalues %} checked="checked" {% endif %}>Использовать значения первой строки в качестве имен признаков</label>
+    </div>
+{% endblock %}
+{% block panel-footer %}
+    <button type="submit" class="btn btn-primary btn-sm" name="sb" value="proceed">Далее</button>
+    </form>
+{% endblock %}
+</body>
+</html>
