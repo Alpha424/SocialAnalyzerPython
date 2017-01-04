@@ -1,20 +1,22 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-import csv
-# Create your views here.
+from thaidanalyzer.utils.misc import ParseCSVFile
+from thaidanalyzer.utils.algorithm import *
+
+
 def default_page(request):
     return HttpResponseRedirect('/start/')
 def start(request):
     if request.POST and request.FILES.get('datafile') is not None:
         uploadedFile = request.FILES['datafile']
-        extension = ''
+        data = None
         if uploadedFile.name.endswith('csv'):
-            extension = 'csv'
+            data = ParseCSVFile(uploadedFile)
         elif uploadedFile.name.endswith('xls') or uploadedFile.name.endswith('xlsx'):
-            extension = 'xls'
+            #TODO: XLS file parse
+            pass
         else:
             return render(request, 'start.html', {'error' : 'Входной файл имел неправильный формат'})
-        data = [row for row in csv.reader(uploadedFile.read().decode('utf-8').splitlines())]
         if data is None or len(data) == 0:
             return render(request, 'start.html', {'error': 'Входной файл пуст'})
         columns = len(data[0])
@@ -42,34 +44,31 @@ def enterattributes(request):
                 if len(a) == 0:
                     return render(request, 'enterattributes.html', {'firstrowvalues' : data[0],
                                                                     'usefirstrowvalues' : usefirstrowvalues,
-                                                                    'error' : 'Необходимо заполнить все поля'
-                                                                    })
+                                                                    'error' : 'Необходимо заполнить все поля'})
                 attributes.append(a)
             if len(attributes) != len(set(attributes)):
                 return render(request, 'enterattributes.html', {'firstrowvalues': data[0],
                                                                 'usefirstrowvalues': usefirstrowvalues,
-                                                                'error': 'Имена признаков не могут повторяться'
-                                                                })
-            dictSet = []
+                                                                'error': 'Имена признаков не могут повторяться'})
+            dictArray = []
             startIndex = 1 if usefirstrowvalues else 0
             for i in range(startIndex, len(data)):
                 dict = {}
                 for j in range(len(attributes)):
                     dict[attributes[j]] = data[i][j]
-                dictSet.append(dict)
-            request.session['dictset'] = dictSet
-            request.session['rows'] = len(dictSet)
-            request.session['columns'] = len(dictSet[0])
+                dictArray.append(dict)
+            request.session['dictArray'] = dictArray
+            request.session['rows'] = len(dictArray)
+            request.session['columns'] = len(dictArray[0])
             request.session['attributes'] = attributes
+            del request.session['data']
             return HttpResponseRedirect('/selectkeyattribute/')
     return render(request, 'enterattributes.html', {'firstrowvalues' : data[0], 'usefirstrowvalues' : usefirstrowvalues})
 
 
 def selectkeyattribute(request):
-    if request.session.get('data') is None:
+    if request.session.get('data') is None and request.session.get('dictArray') is None:
         return HttpResponseRedirect('/start/')
-    if request.session.get('dictset') is None:
-        return HttpResponseRedirect('/enterattributes/')
     if request.POST and request.POST.get('sb') == 'proceed':
         selectedAttribute = request.POST['keyattribute']
         request.session['keyattribute'] = selectedAttribute

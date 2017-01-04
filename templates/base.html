@@ -8,11 +8,16 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="{% static 'js/bootstrap.js' %}"></script>
+    <style>
+        body {
+        background-color: #f5f8fa;
+      }
+    </style>
 </head>
 <body>
 {% include 'navbar.html' %}
 <div class="col-md-12">
-     <ol class="breadcrumb">
+     <ol class="breadcrumb" style="background-color: #ddecfa">
          {% block breadcrumb %}{% endblock %}
      </ol>
      {% block extra-content-top %}
