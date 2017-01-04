@@ -25,8 +25,12 @@
     <table class="table">
         {% for value in firstrowvalues %}
             <tr>
-            <td>Признак {{ forloop.counter }}</td>
+            <td>Столбец {{ forloop.counter }}</td>
             <td><input type="text" class="form-control" name="attribute{{ forloop.counter0 }}" value="{% if usefirstrowvalues %}{{ value }}{% endif %}" {% if usefirstrowvalues %}readonly{% endif %}></td>
+            <td>
+                <div class="checkbox">
+                   <label><input type="checkbox" name="exclude[]" value="{{ forloop.counter0 }}">Исключить из рассмотрения</label>
+                </div>
             </tr>
         {% endfor %}
     </table>

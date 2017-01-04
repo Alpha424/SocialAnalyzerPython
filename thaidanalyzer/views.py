@@ -24,7 +24,7 @@ def start(request):
             if len(row) != columns:
                 return render(request, 'start.html', {'error': 'Входной файл имеет неправильную структуру'})
         request.session['data'] = data
-        return HttpResponseRedirect('/enterattributes')
+        return HttpResponseRedirect('/enterattributes/')
     return render(request, 'start.html', {'error' : None})
 
 
@@ -69,8 +69,9 @@ def enterattributes(request):
 def selectkeyattribute(request):
     if request.session.get('data') is None and request.session.get('dictArray') is None:
         return HttpResponseRedirect('/start/')
+    attributes = request.session['attributes']
     if request.POST and request.POST.get('sb') == 'proceed':
         selectedAttribute = request.POST['keyattribute']
         request.session['keyattribute'] = selectedAttribute
-    attributes = request.session['attributes']
+        THAID(request.session['dictArray'], attributes, selectedAttribute)
     return render(request, 'selectkeyattribute.html', {'attributes' : attributes})

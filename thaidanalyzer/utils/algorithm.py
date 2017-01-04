@@ -1,20 +1,3 @@
-import operator
-
-
-class Tree:
-    class Node:
-        filterAttribute = None
-        filterValues = []
-        leftChild = None
-        rightChild = None
-        def __init__(self, filterAttribute, filterValues):
-            self.filterAttribute = filterAttribute
-            self.filterValues = filterValues
-    head = None
-    def __init__(self):
-        self.head = Tree.Node(None, None)
-
-
 def GetPossibleValuesForAttribute(dictArray, attribute):
     values = set()
     for e in dictArray:
@@ -31,13 +14,16 @@ def EvaluateDistribution(dictArray, keyAttribute):
     for value in possibleValues:
         res[value] = len([x for x in dictArray if x[keyAttribute] == value]) / N
     return res
+
 def GetModalValueForAttribute(dictArray, attribute):
     dist = EvaluateDistribution(dictArray, attribute)
     return max(dist, key=dist.get)
+
 def GetModalRateForAttribute(dictArray, attribute):
     dist = EvaluateDistribution(dictArray, attribute)
     maxKey = max(dist, key=dist.get)
     return dist[maxKey]
+
 def GetPossibleSplitsForAttribute(dictArray, attribute):
     possibleValues = list(GetPossibleValuesForAttribute(dictArray, attribute))
     if possibleValues is None or len(possibleValues) == 0:
@@ -48,32 +34,66 @@ def GetPossibleSplitsForAttribute(dictArray, attribute):
     for i in range(1, len(possibleValues)):
         splits.append((possibleValues[0:i], possibleValues[i:]))
     return splits
+
+def GetSplitRate(dictArray, attribute, keyAttribute, split):
+    selectionA = FilterDictArrayByAttributeValues(dictArray, attribute, split[0])
+    selectionB = FilterDictArrayByAttributeValues(dictArray, attribute, split[1])
+    n1 = len(selectionA)
+    n2 = len(selectionB)
+    p1 = GetModalRateForAttribute(selectionA, keyAttribute)
+    p2 = GetModalRateForAttribute(selectionB, keyAttribute)
+    rate = n1 * p1 + n2 * p2
+    return rate
+
 def GetBestSplitDecision(dictArray, attribute, keyAttribute):
     possibleSplits = GetPossibleSplitsForAttribute(dictArray, attribute)
-    splitRates = {}
+    maxSplitRate = -1
+    bestSplit = None
     for split in possibleSplits:
-        selectionA = FilterDictArrayByAttributeValues(dictArray, attribute, split[0])
-        selectionB = FilterDictArrayByAttributeValues(dictArray, attribute, split[1])
-        n1 = len(selectionA)
-        n2 = len(selectionB)
-        p1 = GetModalRateForAttribute(selectionA, keyAttribute)
-        p2 = GetModalRateForAttribute(selectionB, keyAttribute)
-        rate = n1 * p1 + n2 * p2
-        splitRates[split] = rate
-        continue
-    return splitRates
+        rate = GetSplitRate(dictArray, attribute, keyAttribute, split)
+        if rate > maxSplitRate:
+            maxSplitRate = rate
+            bestSplit = split
+    return bestSplit
 
+class Node(object):
+    def __init__(self, data):
+        self.data = data
+        self.children = []
 
+    def add_child(self, obj):
+        self.children.append(obj)
 
-class THAIDAnalyzer:
-    dictArray = []
-    keyAttribute = None
-    tree = None
-    def __init__(self, dictArray, keyAttribute):
-        self.dictArray = dictArray
-        self.keyAttribute = keyAttribute
-        self.tree = Tree()
-    def SplitSet(self, dictArr = dictArray, level = 1):
-        pass
+def THAID(dictArray, attributeList, keyAttribute):
+    if dictArray == None or attributeList == None or keyAttribute == None:
+        return
+    if len(attributeList) == 0:
+        return
+    attributes = list(attributeList)
+    if keyAttribute in attributes:
+        attributes.remove(keyAttribute)
+    node = Node(None)
+    BuildTree(dictArray, attributes, keyAttribute, node)
+    return
 
-
+def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.9):
+    if len(dictArray) == 0 or len(attributeList) == 0:
+        return
+    if GetModalRateForAttribute(dictArray, keyAttribute) >= modalRateStop:
+        return
+    attributes = list(attributeList)
+    bestAttribute = attributes[0]
+    bestAttributeSplitRate = -1
+    bestAttributeSplit = None
+    for a in attributes:
+        attributeBestSplit = GetBestSplitDecision(dictArray, a, keyAttribute)
+        attributeBestSplitRate = GetSplitRate(dictArray, a, keyAttribute, attributeBestSplit)
+        if(attributeBestSplitRate > bestAttributeSplitRate):
+            bestAttribute = a
+            bestAttributeSplitRate = attributeBestSplitRate
+            bestAttributeSplit = attributeBestSplit
+    treenode.add_child(Node((bestAttribute, bestAttributeSplit[0])))
+    treenode.add_child(Node((bestAttribute, bestAttributeSplit[1])))
+    attributes.remove(bestAttribute)
+    BuildTree(FilterDictArrayByAttributeValues(dictArray, bestAttribute, bestAttributeSplit[0]), attributes, keyAttribute, treenode.children[0])
+    BuildTree(FilterDictArrayByAttributeValues(dictArray, bestAttribute, bestAttributeSplit[1]), attributes, keyAttribute, treenode.children[1])
