@@ -1,32 +1,53 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from thaidanalyzer.utils.misc import ParseCSVFile
+from thaidanalyzer.utils.misc import *
 from thaidanalyzer.utils.algorithm import *
-
-
 def default_page(request):
     return HttpResponseRedirect('/start/')
 def start(request):
     if request.POST and request.FILES.get('datafile') is not None:
         uploadedFile = request.FILES['datafile']
-        data = None
+        request.session['file'] = uploadedFile
         if uploadedFile.name.endswith('csv'):
-            data = ParseCSVFile(uploadedFile)
+            request.session['extension'] = 'csv'
+            return HttpResponseRedirect('/csvoptions/')
         elif uploadedFile.name.endswith('xls') or uploadedFile.name.endswith('xlsx'):
-            #TODO: XLS file parse
-            pass
+            request.session['extension'] = 'excel'
+            return HttpResponseRedirect('/xlsoptions/')
         else:
             return render(request, 'start.html', {'error' : 'Входной файл имел неправильный формат'})
-        if data is None or len(data) == 0:
-            return render(request, 'start.html', {'error': 'Входной файл пуст'})
-        columns = len(data[0])
-        for row in data:
-            if len(row) != columns:
-                return render(request, 'start.html', {'error': 'Входной файл имеет неправильную структуру'})
-        request.session['data'] = data
-        return HttpResponseRedirect('/enterattributes/')
     return render(request, 'start.html', {'error' : None})
 
+def csvoptions(request):
+    if request.session.get('file') is None or request.session.get('extension') != 'csv':
+        return HttpResponseRedirect('/start/')
+    if request.POST and request.POST.get('separator') is not None and request.POST.get('codec') is not None:
+        try:
+            request.session['data'] = ParseCSVFile(request.session['file'], request.POST.get('separator'), request.POST.get('codec'))
+            del request.session['file']
+            return HttpResponseRedirect('/enterattributes/')
+        except Exception as e:
+            return render(request, 'csvoptions.html', {'error' : e})
+    return render(request, 'csvoptions.html', {})
+
+def xlsoptions(request):
+    if request.session.get('file') is None or request.session.get('extension') != 'excel':
+        return HttpResponseRedirect('/start/')
+    file = request.session.get('file')
+    book = xlrd.open_workbook(file_contents=file.read())
+    sheets = book.sheet_names()
+    if len(sheets) == 0:
+        return HttpResponseRedirect('/start/')
+    if request.POST and request.POST.get('sheet') is not None and book is not None:
+        try:
+            sheet_idx = int(request.POST.get('sheet'))
+            request.session['data'] = ParseXLSFile(book.sheet_by_index(sheet_idx))
+            del request.session['file']
+            return HttpResponseRedirect('/enterattributes/')
+        except Exception as e:
+            return render(request, 'xlsoptions.html', {'sheets': sheets, 'error' : e})
+
+    return render(request, 'xlsoptions.html', {'sheets' : sheets})
 
 def enterattributes(request):
     if request.session.get('data') is None:
@@ -50,16 +71,8 @@ def enterattributes(request):
                 return render(request, 'enterattributes.html', {'firstrowvalues': data[0],
                                                                 'usefirstrowvalues': usefirstrowvalues,
                                                                 'error': 'Имена признаков не могут повторяться'})
-            dictArray = []
-            startIndex = 1 if usefirstrowvalues else 0
-            for i in range(startIndex, len(data)):
-                dict = {}
-                for j in range(len(attributes)):
-                    dict[attributes[j]] = data[i][j]
-                dictArray.append(dict)
+            dictArray = ConvertRawDataToDictArray(data, attributes, usefirstrowvalues)
             request.session['dictArray'] = dictArray
-            request.session['rows'] = len(dictArray)
-            request.session['columns'] = len(dictArray[0])
             request.session['attributes'] = attributes
             del request.session['data']
             return HttpResponseRedirect('/selectkeyattribute/')

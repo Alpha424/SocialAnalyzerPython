@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block title %}Настройка параметров файла{% endblock %}
+</head>
+<body>
+{% block breadcrumb %}
+    <li><a href="{% url 'start' %}"><strong>Загрузка файла</strong></a></li>
+{% endblock %}
+{% block extra-content-top %}
+    {% if error %}
+        <div class="alert alert-danger">
+            <strong>Ошибка: </strong> {{ error }}
+        </div>
+    {% endif %}
+{% endblock %}
+{% block panel-header %}
+    <h3 class="panel-title">Шаг 1 - настройка параметров файла</h3>
+{% endblock %}
+{% block panel-body %}
+    <form action="{% url 'xlsoptions' %}" method="post">{% csrf_token %}
+    <p>Выберите таблицу книги Excel для извлечения значений</p>
+    <select class="form-control" name="sheet">
+    {% for sheet in sheets %}
+        <option value="{{ forloop.counter0 }}">{{ sheet }}</option>
+    {% endfor %}
+    </select>
+{% endblock %}
+{% block panel-footer %}
+    <button type="submit" class="btn btn-primary btn-sm" name="sb" value="proceed">Далее</button>
+    </form>
+{% endblock %}
+</body>
+</html>

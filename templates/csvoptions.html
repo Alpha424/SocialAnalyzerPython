@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block title %}Настройка параметров файла{% endblock %}
+</head>
+<body>
+{% block breadcrumb %}
+    <li><a href="{% url 'start' %}"><strong>Загрузка файла</strong></a></li>
+{% endblock %}
+{% block extra-content-top %}
+    {% if error %}
+        <div class="alert alert-danger">
+            <strong>Ошибка: </strong> {{ error }}
+        </div>
+    {% endif %}
+{% endblock %}
+{% block panel-header %}
+    <h3 class="panel-title">Шаг 1 - настройка параметров файла</h3>
+{% endblock %}
+{% block panel-body %}
+    <form action="{% url 'csvoptions' %}" method="post">{% csrf_token %}
+    <p>Выберите знак разделителя для значений таблицы CSV</p>
+    <select class="form-control" name="separator">
+        <option value=",">Запятая</option>
+        <option value=" ">Пробел</option>
+        <option value=";">Точка с запятой</option>
+        <option value=" ">Горизонтальная табуляция</option>
+    </select>
+    <br>
+    <p>Выберите кодировку файла</p>
+    <select class="form-control" name="codec">
+        <option value="utf8">UTF-8</option>
+        <option value="cp1251">windows-1251</option>
+        <option value="ascii">ASCII</option>
+    </select>
+{% endblock %}
+{% block panel-footer %}
+    <button type="submit" class="btn btn-primary btn-sm" name="sb" value="proceed">Далее</button>
+    </form>
+{% endblock %}
+</body>
+</html>

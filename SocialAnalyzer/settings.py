@@ -125,3 +125,7 @@ STATICFILES_DIRS = (
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_FILE_PATH = os.path.join(BASE_DIR, 'thaidanalyzer/temp')
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+EMPTY_VALUES_PLACEHOLDER = "НЕТ ЗНАЧЕНИЯ"

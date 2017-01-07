@@ -21,6 +21,8 @@ urlpatterns = [
     # url(r'^admin/', admin.site.urls),
     url(r'^$', views.default_page, name='default_page'),
     url(r'^start/$', views.start, name='start'),
+    url(r'^csvoptions/$', views.csvoptions, name='csvoptions'),
+    url(r'^xlsoptions/$', views.xlsoptions, name='xlsoptions'),
     url(r'^enterattributes/$', views.enterattributes, name='enterattributes'),
     url(r'^selectkeyattribute/$', views.selectkeyattribute, name='selectkeyattribute')
 ]

@@ -21,7 +21,7 @@
 {% endblock %}
 {% block panel-body %}
     <p>
-        Для начала вам необходимо загрузить файл CSV в систему
+        Для начала вам необходимо загрузить файл формата CSV, XLS или XLSX в систему
     </p>
     <form action="{% url 'start' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
     <input name='datafile' type="file"  placeholder="Выбрать файл">
