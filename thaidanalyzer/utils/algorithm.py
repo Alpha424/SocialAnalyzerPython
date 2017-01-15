@@ -99,7 +99,7 @@ def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 
             attributes.remove(a)
         if len(GetPossibleValuesForAttribute(dictArray, a)) < 2:
             attributes.remove(a)
-            #TODO: ПОДУМАТЬ
+            #TODO: ПЕРЕДЕЛАТЬ
     if len(attributes) == 0:
         return
     bestAttribute = None
