@@ -41,8 +41,8 @@ def ParseXLSFile(sheet):
         data.append([cell.value for cell in row])
     if len(data) == 0:
         raise FileEmptyError("Таблица не содержит строк")
-    for i in range(len(data)):
-        for j in range(len(data[i])):
-            if len(data[i][j].strip()) == 0:
-                data[i][j] = EMPTY_VALUES_PLACEHOLDER
     return data
+
+def ExtractSheetsFromXLSFile(file):
+    book = xlrd.open_workbook(file_contents=file.read())
+    return book.sheets()

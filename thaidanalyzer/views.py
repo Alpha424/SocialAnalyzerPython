@@ -2,89 +2,109 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from thaidanalyzer.utils.misc import *
 from thaidanalyzer.utils.algorithm import *
+from thaidanalyzer.forms import *
 def default_page(request):
     return HttpResponseRedirect('/start/')
 def start(request):
-    if request.POST and request.FILES.get('datafile') is not None:
-        uploadedFile = request.FILES['datafile']
-        request.session['file'] = uploadedFile
-        if uploadedFile.name.endswith('csv'):
-            request.session['extension'] = 'csv'
-            return HttpResponseRedirect('/csvoptions/')
-        elif uploadedFile.name.endswith('xls') or uploadedFile.name.endswith('xlsx'):
-            request.session['extension'] = 'excel'
-            return HttpResponseRedirect('/xlsoptions/')
-        else:
-            return render(request, 'start.html', {'error' : 'Входной файл имел неправильный формат'})
-    return render(request, 'start.html', {'error' : None})
+    if request.method == 'POST':
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            uploadedFile = request.FILES.get('file')
+            request.session['file'] = uploadedFile
+            if uploadedFile.name.endswith('.csv'):
+                request.session['extension'] = 'csv'
+                return HttpResponseRedirect('/csvoptions/')
+            elif uploadedFile.name.endswith('xls') or uploadedFile.name.endswith('xlsx'):
+                request.session['extension'] = 'excel'
+                return HttpResponseRedirect('/xlsoptions/')
+            else:
+                raise Exception('File extension exception')
+    else:
+        form = FileUploadForm()
+    return render(request, 'start.html', {'form' : form})
 
 def csvoptions(request):
     if request.session.get('file') is None or request.session.get('extension') != 'csv':
         return HttpResponseRedirect('/start/')
-    if request.POST and request.POST.get('separator') is not None and request.POST.get('codec') is not None:
-        try:
-            request.session['data'] = ParseCSVFile(request.session['file'], request.POST.get('separator'), request.POST.get('codec'))
-            del request.session['file']
-            return HttpResponseRedirect('/enterattributes/')
-        except Exception as e:
-            return render(request, 'csvoptions.html', {'error' : e})
-    return render(request, 'csvoptions.html', {})
+    if request.method == 'POST':
+        form = CSVOptionsForm(request.POST)
+        if form.is_valid():
+            try:
+                separator = form.cleaned_data['separator']
+                codec = form.cleaned_data['codec']
+                request.session['data'] = ParseCSVFile(request.session['file'], separator, codec)
+                del request.session['file']
+                return HttpResponseRedirect('/enterattributes/')
+            except Exception as e:
+                form.add_error(None, str(e))
+    else:
+        form = CSVOptionsForm()
+    return render(request, 'csvoptions.html', {'form' : form})
 
 def xlsoptions(request):
     if request.session.get('file') is None or request.session.get('extension') != 'excel':
         return HttpResponseRedirect('/start/')
-    file = request.session.get('file')
-    book = xlrd.open_workbook(file_contents=file.read())
-    sheets = book.sheet_names()
+    try:
+        sheets = ExtractSheetsFromXLSFile(request.session.get('file'))
+    except:
+        return HttpResponseRedirect('/start/')
     if len(sheets) == 0:
         return HttpResponseRedirect('/start/')
-    if request.POST and request.POST.get('sheet') is not None and book is not None:
+    form = XLSOptionsForm(request.POST or None, sheets=sheets)
+    if form.is_valid():
+        sheet_idx = int(form.cleaned_data['sheet_selection'])
         try:
-            sheet_idx = int(request.POST.get('sheet'))
-            request.session['data'] = ParseXLSFile(book.sheet_by_index(sheet_idx))
+            request.session['data'] = ParseXLSFile(sheets[sheet_idx])
             del request.session['file']
             return HttpResponseRedirect('/enterattributes/')
         except Exception as e:
-            return render(request, 'xlsoptions.html', {'sheets': sheets, 'error' : e})
-
-    return render(request, 'xlsoptions.html', {'sheets' : sheets})
+            form.add_error(None, str(e))
+    return render(request, 'xlsoptions.html', {'form' : form})
 
 def enterattributes(request):
-    if request.session.get('data') is None:
+    if request.session.get('data') is None or len(request.session.get('data')) == 0:
         return HttpResponseRedirect('/start/')
-    usefirstrowvalues = False
-    data = request.session['data']
+    if 'dictArray' in request.session:
+        del request.session['dictArray']
+    if 'attributes' in request.session:
+        del request.session['attributes']
+    data = request.session.get('data')
     columnsNum = len(data[0])
-    if request.POST and request.POST.get('checkbox') is not None:
-        usefirstrowvalues = request.POST.get('checkbox') == 'usefirstrowvalues'
-    if request.POST and request.POST.get('sb') is not None:
-        if request.POST['sb'] == 'proceed':
-            attributes = []
-            for i in range(columnsNum):
-                a = request.POST['attribute' + str(i)].strip()
-                if len(a) == 0:
-                    return render(request, 'enterattributes.html', {'firstrowvalues' : data[0],
-                                                                    'usefirstrowvalues' : usefirstrowvalues,
-                                                                    'error' : 'Необходимо заполнить все поля'})
-                attributes.append(a)
-            if len(attributes) != len(set(attributes)):
-                return render(request, 'enterattributes.html', {'firstrowvalues': data[0],
-                                                                'usefirstrowvalues': usefirstrowvalues,
-                                                                'error': 'Имена признаков не могут повторяться'})
+    form = EnterAttributesForm(request.POST or None, narg=columnsNum)
+    if request.method == 'POST':
+        attributes = []
+        usefirstrowvalues = 'form_usefirstrowvalues' in request.POST
+        if usefirstrowvalues:
+            attributes = data[0]
+        else:
+            attributes = [form.data.get('arg%s' % i) for i in range(columnsNum)]
+        for a in attributes:
+            if not str(a).strip():
+                form.add_error(None, 'Не все поля заполнены')
+                return render(request, 'enterattributes.html', {'form': form})
+        if len(attributes) == len(set(attributes)):
             dictArray = ConvertRawDataToDictArray(data, attributes, usefirstrowvalues)
             request.session['dictArray'] = dictArray
             request.session['attributes'] = attributes
             del request.session['data']
             return HttpResponseRedirect('/selectkeyattribute/')
-    return render(request, 'enterattributes.html', {'firstrowvalues' : data[0], 'usefirstrowvalues' : usefirstrowvalues})
-
+        else:
+            form.add_error(None, 'Имена признаков не могут повторяться')
+    return render(request, 'enterattributes.html', {'form' : form})
 
 def selectkeyattribute(request):
-    if request.session.get('data') is None and request.session.get('dictArray') is None:
+    if not(request.session.get('dictArray') or request.session.get('attributes')):
         return HttpResponseRedirect('/start/')
     attributes = request.session['attributes']
-    if request.POST and request.POST.get('sb') == 'proceed':
-        selectedAttribute = request.POST['keyattribute']
-        request.session['keyattribute'] = selectedAttribute
-        THAID(request.session['dictArray'], attributes, selectedAttribute)
-    return render(request, 'selectkeyattribute.html', {'attributes' : attributes})
+    form = SelectKeyAttributeForm(request.POST or None, attributes=attributes)
+    if len(attributes) < 2:
+        form.add_error(None, 'Для работы алгоритма необходимо как минимум наличие двух признаков, включая ключевой')
+        return render(request, 'selectkeyattribute.html', {'form' : form})
+    if form.is_valid():
+        try:
+            keyAttributeIndex = int(form.cleaned_data.get('key_attribute_selection'))
+            request.session['keyattribute'] = attributes[keyAttributeIndex]
+
+        except Exception as e:
+            form.add_error(None, str(e))
+    return render(request, 'selectkeyattribute.html', {'form': form})

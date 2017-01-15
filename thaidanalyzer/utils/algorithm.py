@@ -73,26 +73,35 @@ class Node(object):
         self.children.append(obj)
 
 def THAID(dictArray, attributeList, keyAttribute):
-    if dictArray == None or attributeList == None or keyAttribute == None:
-        return
+    if dictArray is None:
+        raise Exception('Null set')
+    if attributeList is None:
+        raise Exception('No attributes given')
+    if keyAttribute is None:
+        raise Exception('No key attribute given')
     if len(attributeList) == 0:
         return
     attributes = list(attributeList)
     if keyAttribute in attributes:
         attributes.remove(keyAttribute)
-    node = Node(None)
-    BuildTree(dictArray, attributes, keyAttribute, node)
+    treeRoot = Node(None)
+    BuildTree(dictArray, attributes, keyAttribute, treeRoot)
     return
 
 def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.9):
-    if len(dictArray) == 0 or len(attributeList) == 0:
+    if len(dictArray) == 0:
         return
     if GetModalRateForAttribute(dictArray, keyAttribute) >= modalRateStop:
         return
     attributes = list(attributeList)
     for a in attributes:
-        if len(GetPossibleValuesForAttribute(dictArray, a)) < 2 or len(GetPossibleSplitsForAttribute(dictArray, a)) < 2:
+        if len(GetPossibleSplitsForAttribute(dictArray, a)) == 1:
             attributes.remove(a)
+        if len(GetPossibleValuesForAttribute(dictArray, a)) < 2:
+            attributes.remove(a)
+            #TODO: ПОДУМАТЬ
+    if len(attributes) == 0:
+        return
     bestAttribute = None
     bestAttributeSplitRate = -1
     bestAttributeSplit = None

@@ -7,14 +7,21 @@
 </head>
 <body>
 {% block breadcrumb %}
-    <li><a href="{% url 'start' %}"><strong>Загрузка файла</strong></a></li>
+    <li><strong>Загрузка файла</strong></li>
 {% endblock %}
 {% block extra-content-top %}
-    {% if error %}
+    {% for error in form.non_field_errors %}
         <div class="alert alert-danger">
-            <strong>Ошибка: </strong> {{ error }}
+        <strong>Ошибка: </strong> {{ error }}
         </div>
-    {% endif %}
+    {% endfor %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+            <strong>Ошибка: </strong> {{ error }}
+            </div>
+        {% endfor %}
+    {% endfor %}
 {% endblock %}
 {% block panel-header %}
     <h3 class="panel-title">Шаг 1 - настройка параметров файла</h3>
@@ -22,11 +29,7 @@
 {% block panel-body %}
     <form action="{% url 'xlsoptions' %}" method="post">{% csrf_token %}
     <p>Выберите таблицу книги Excel для извлечения значений</p>
-    <select class="form-control" name="sheet">
-    {% for sheet in sheets %}
-        <option value="{{ forloop.counter0 }}">{{ sheet }}</option>
-    {% endfor %}
-    </select>
+    {{ form.sheet_selection }}
 {% endblock %}
 {% block panel-footer %}
     <button type="submit" class="btn btn-primary btn-sm" name="sb" value="proceed">Далее</button>

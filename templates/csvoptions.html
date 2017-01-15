@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,15 +7,22 @@
     {% block title %}Настройка параметров файла{% endblock %}
 </head>
 <body>
-{% block breadcrumb %}
-    <li><a href="{% url 'start' %}"><strong>Загрузка файла</strong></a></li>
-{% endblock %}
 {% block extra-content-top %}
-    {% if error %}
+    {% for error in form.non_field_errors %}
         <div class="alert alert-danger">
-            <strong>Ошибка: </strong> {{ error }}
+        <strong>Ошибка: </strong> {{ error }}
         </div>
-    {% endif %}
+    {% endfor %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+            <strong>Ошибка: </strong> {{ error }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+{% endblock %}
+{% block breadcrumb %}
+    <li><strong>Загрузка файла</strong></li>
 {% endblock %}
 {% block panel-header %}
     <h3 class="panel-title">Шаг 1 - настройка параметров файла</h3>
@@ -22,19 +30,10 @@
 {% block panel-body %}
     <form action="{% url 'csvoptions' %}" method="post">{% csrf_token %}
     <p>Выберите знак разделителя для значений таблицы CSV</p>
-    <select class="form-control" name="separator">
-        <option value=",">Запятая</option>
-        <option value=" ">Пробел</option>
-        <option value=";">Точка с запятой</option>
-        <option value=" ">Горизонтальная табуляция</option>
-    </select>
+    {{ form.separator}}
     <br>
     <p>Выберите кодировку файла</p>
-    <select class="form-control" name="codec">
-        <option value="utf8">UTF-8</option>
-        <option value="cp1251">windows-1251</option>
-        <option value="ascii">ASCII</option>
-    </select>
+    {{ form.codec }}
 {% endblock %}
 {% block panel-footer %}
     <button type="submit" class="btn btn-primary btn-sm" name="sb" value="proceed">Далее</button>

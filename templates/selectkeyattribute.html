@@ -7,9 +7,23 @@
 </head>
 <body>
 {% block breadcrumb %}
-    <li><a href="{% url 'start' %}">Загрузка файла</a></li>
-    <li><a href="{% url 'enterattributes' %}">Ввод имён признаков</a></li>
-    <li><a href="{% url 'selectkeyattribute' %}"><strong>Выбор ключевого признака</strong></a></li>
+    <li>Загрузка файла</li>
+    <li>Ввод имён признаков</li>
+    <li><strong>Выбор ключевого признака</strong></li>
+{% endblock %}
+{% block extra-content-top %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+        <strong>Ошибка: </strong> {{ error }}
+        </div>
+    {% endfor %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+            <strong>Ошибка: </strong> {{ error }}
+            </div>
+        {% endfor %}
+    {% endfor %}
 {% endblock %}
 {% block panel-header %}
     <h3 class="panel-title">Шаг 3 - выбор ключевого признака</h3>
@@ -17,11 +31,7 @@
 {% block panel-body %}
     <form action="{% url 'selectkeyattribute' %}" method="post">{% csrf_token %}
     <p>Необходимо выбрать ключевой признак (ответ респондента)</p>
-    <select class="form-control" name="keyattribute">
-    {% for a in attributes %}
-        <option value="{{ a }}">{{ a }}</option>
-    {% endfor %}
-    </select>
+    {{ form.key_attribute_selection }}
 {% endblock %}
 {% block panel-footer %}
     <button type="submit" class="btn btn-primary btn-sm" name="sb" value="proceed">Далее</button>
