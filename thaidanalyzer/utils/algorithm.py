@@ -24,20 +24,38 @@ def GetModalRateForAttribute(dictArray, attribute):
     maxKey = max(dist, key=dist.get)
     return dist[maxKey]
 
+
 def GetPossibleSplitsForAttribute(dictArray, attribute):
+    def sorted_k_partitions(seq, k):
+        n = len(seq)
+        groups = []
+
+        def generate_partitions(i):
+            if i >= n:
+                yield list(map(tuple, groups))
+            else:
+                if n - i > k - len(groups):
+                    for group in groups:
+                        group.append(seq[i])
+                        yield from generate_partitions(i + 1)
+                        group.pop()
+
+                if len(groups) < k:
+                    groups.append([seq[i]])
+                    yield from generate_partitions(i + 1)
+                    groups.pop()
+
+        result = generate_partitions(0)
+        return result
+
     possibleValues = list(GetPossibleValuesForAttribute(dictArray, attribute))
-    if possibleValues is None or len(possibleValues) == 0:
+    if not possibleValues or len(possibleValues) == 1:
         return None
-    if len(possibleValues) == 1:
-        return possibleValues[0]
-    splits = []
-    for i in range(1, len(possibleValues)):
-        splits.append((possibleValues[0:i], possibleValues[i:]))
-    return splits
+    splits = sorted_k_partitions(possibleValues, 2)
+    return list(splits)
 
 def GetSplitRate(dictArray, attribute, keyAttribute, split):
-    if len(split) < 2:
-        return 0
+    assert len(split) >= 2
     selectionA = FilterDictArrayByAttributeValues(dictArray, attribute, split[0])
     selectionB = FilterDictArrayByAttributeValues(dictArray, attribute, split[1])
     n1 = len(selectionA)
@@ -63,9 +81,12 @@ def GetBestSplitDecision(dictArray, attribute, keyAttribute):
     return bestSplit
 
 class Node(object):
+    counter = 0
     def __init__(self, data):
         self.data = data
         self.children = None
+        self.id = Node.counter
+        Node.counter += 1
 
     def add_child(self, obj):
         if self.children is None:
@@ -86,7 +107,7 @@ def THAID(dictArray, attributeList, keyAttribute):
         attributes.remove(keyAttribute)
     treeRoot = Node(None)
     BuildTree(dictArray, attributes, keyAttribute, treeRoot)
-    return
+    return treeRoot
 
 def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.9):
     if len(dictArray) == 0:
@@ -95,12 +116,9 @@ def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 
         return
     attributes = list(attributeList)
     for a in attributes:
-        if len(GetPossibleSplitsForAttribute(dictArray, a)) == 1:
+        if not GetPossibleSplitsForAttribute(dictArray, a):
             attributes.remove(a)
-        if len(GetPossibleValuesForAttribute(dictArray, a)) < 2:
-            attributes.remove(a)
-            #TODO: ПЕРЕДЕЛАТЬ
-    if len(attributes) == 0:
+    if not attributes:
         return
     bestAttribute = None
     bestAttributeSplitRate = -1

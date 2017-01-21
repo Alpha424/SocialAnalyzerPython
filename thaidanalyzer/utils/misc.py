@@ -1,6 +1,6 @@
 import csv
 import xlrd
-from SocialAnalyzer.settings import EMPTY_VALUES_PLACEHOLDER
+import graphviz as gv
 class FileEmptyError(Exception):
     def __init__(self, value):
         self.value = value
@@ -46,3 +46,20 @@ def ParseXLSFile(sheet):
 def ExtractSheetsFromXLSFile(file):
     book = xlrd.open_workbook(file_contents=file.read())
     return book.sheets()
+
+def RenderTree(tree_head):
+    def traverse_tree(node, graph):
+        nodeLabel = ""
+        if node.data:
+            nodeLabel = str(node.data[0]) + ": " + ', '.join(node.data[1])
+        graph.node(str(node.id), label=nodeLabel)
+        if not node.children:
+            return node
+        for child in node.children:
+            c = traverse_tree(child, graph)
+            graph.edge(str(node.id), str(c.id))
+        return node
+
+    g1 = gv.Graph(format='svg')
+    traverse_tree(tree_head, g1)
+    return g1

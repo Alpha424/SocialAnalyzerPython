@@ -1,3 +1,5 @@
+import json
+
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from thaidanalyzer.utils.misc import *
@@ -104,7 +106,49 @@ def selectkeyattribute(request):
         try:
             keyAttributeIndex = int(form.cleaned_data.get('key_attribute_selection'))
             request.session['keyattribute'] = attributes[keyAttributeIndex]
-
+            return HttpResponseRedirect('/report/')
         except Exception as e:
             form.add_error(None, str(e))
     return render(request, 'selectkeyattribute.html', {'form': form})
+
+def report(request):
+    if not (request.session.get('dictArray') or request.session.get('attributes') or request.session.get('keyattribute')):
+        return HttpResponseRedirect('/start/')
+    dictArray = request.session.get('dictArray')
+    attributes = request.session.get('attributes')
+    keyattribute = request.session.get('keyattribute')
+    treeHead = THAID(dictArray, attributes, keyattribute)
+    context = {}
+    context['series_len'] = len(dictArray)
+    distribution_chart = {
+        'chart' : {
+            'plotBackgroundColor': 'white',
+            'type': 'pie'
+        },
+        'title': {
+            'text': 'Распределение ключевого признака в выборке'
+        },
+        'tooltip': {
+            'pointFormat': '{series.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        'plotOptions': {
+            'pie': {
+                'allowPointSelect': 'true',
+                'cursor': 'pointer',
+                'dataLabels': {
+                    'enabled': 'true',
+                    'format': '<b>{point.name}</b>: {point.percentage:.1f} %'
+                }
+            }
+        },
+        'series': [{
+            'name': 'Доля признака',
+            'colorByPoint': 'true',
+            'data': [{'name' : key, 'y' : val} for key, val in EvaluateDistribution(dictArray, keyattribute).items()]
+        }]
+    }
+    context['distribution_chart'] = json.dumps(distribution_chart, ensure_ascii=False)
+    dotTree = RenderTree(treeHead)
+    return render(request, 'report.html', context)
+
+

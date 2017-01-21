@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block extrajs %}
+    <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
+        <script>
+        $(function () {
+    Highcharts.chart('plot_container', {{ distribution_chart | safe }});
+});
+        </script>
+    {% endblock %}
+
+    {% block title %}Отчёт{% endblock %}
+</head>
+<body>
+{% block breadcrumb %}
+    <li>Загрузка файла</li>
+    <li>Ввод имён признаков</li>
+    <li>Выбор ключевого признака</li>
+    <li><strong>Отчёт</strong></li>
+{% endblock %}
+{% block extra-content-top %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+        <strong>Ошибка: </strong> {{ error }}
+        </div>
+    {% endfor %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+            <strong>Ошибка: </strong> {{ error }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+{% endblock %}
+{% block panel-header %}
+    <h3 class="panel-title">Отчёт</h3>
+{% endblock %}
+
+{% block panel-body %}
+
+    <div class="row">
+    <div class="col-xs-4">
+        <h3 class="text-primary text-center">{{ series_len }}</h3>
+        <h5 class="text-center">Количество наблюдений</h5>
+
+    </div>
+    <div class="col-xs-8">
+        <div class="panel panel-default" style="width:100%; height:400px;">
+            <div class="panel-body" id="plot_container" style="width:100%; height:100%;">
+
+            </div>
+        </div>
+    </div>
+    </div>
+
+{% endblock %}
+
+{% block panel-footer %}
+{% endblock %}
+</body>
+</html>
