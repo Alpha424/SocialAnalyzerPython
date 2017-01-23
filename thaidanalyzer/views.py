@@ -121,7 +121,7 @@ def report(request):
     context = {}
     context['series_len'] = len(dictArray)
     distribution_chart = {
-        'chart' : {
+        'chart': {
             'plotBackgroundColor': 'white',
             'type': 'pie'
         },
@@ -144,11 +144,11 @@ def report(request):
         'series': [{
             'name': 'Доля признака',
             'colorByPoint': 'true',
-            'data': [{'name' : key, 'y' : val} for key, val in EvaluateDistribution(dictArray, keyattribute).items()]
+            'data': [{'name': key, 'y': val} for key, val in EvaluateDistribution(dictArray, keyattribute).items()]
         }]
     }
     context['distribution_chart'] = json.dumps(distribution_chart, ensure_ascii=False)
-    dotTree = RenderTree(treeHead)
+    dotTree = RenderTree(treeHead, dictArray)
     context['tree'] = dotTree.pipe(format='svg')
     return render(request, 'report.html', context)
 

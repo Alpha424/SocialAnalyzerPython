@@ -1,6 +1,10 @@
 import csv
 import xlrd
 import graphviz as gv
+
+from thaidanalyzer.utils.algorithm import FilterSetByTreePath
+
+
 class FileEmptyError(Exception):
     def __init__(self, value):
         self.value = value
@@ -47,19 +51,21 @@ def ExtractSheetsFromXLSFile(file):
     book = xlrd.open_workbook(file_contents=file.read())
     return book.sheets()
 
-def RenderTree(tree_head, file_format = 'svg'):
-    def traverse_tree(node, graph):
-        nodeLabel = ""
+def RenderTree(tree_head, dictArray, file_format = 'svg'):
+    def lookup_down(node, graph):
         if node.data:
             nodeLabel = str(node.data[0]) + ": " + ', '.join(node.data[1])
+        else:
+            nodeLabel = str(len(dictArray))
         graph.node(str(node.id), label=nodeLabel)
         if not node.children:
             return node
         for child in node.children:
-            c = traverse_tree(child, graph)
-            graph.edge(str(node.id), str(c.id))
+            c = lookup_down(child, graph)
+            edgeLabel = str(len(FilterSetByTreePath(dictArray, c)))
+            graph.edge(str(node.id), str(c.id), label=edgeLabel)
         return node
 
     g1 = gv.Graph(format=file_format)
-    traverse_tree(tree_head, g1)
+    lookup_down(tree_head, g1)
     return g1

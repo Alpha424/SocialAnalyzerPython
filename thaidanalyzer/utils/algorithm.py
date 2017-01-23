@@ -78,17 +78,34 @@ def GetBestSplitDecision(dictArray, attribute, keyAttribute):
             bestSplit = split
     return bestSplit
 
+def FilterSetByTreePath(dictArray, treeLeaf):
+    filtered_array = list(dictArray)
+    filters = []
+    def get_filter_path_from_node(node):
+        if not node.data:
+            return
+        filters.append(node.data)
+        if node.parent:
+            get_filter_path_from_node(node.parent)
+    get_filter_path_from_node(treeLeaf)
+    for f in filters:
+        filtered_array = list(filter(lambda e: e[f[0]] in f[1], filtered_array))
+    return filtered_array
+
+
 class Node(object):
     counter = 0
     def __init__(self, data):
         self.data = data
         self.children = None
+        self.parent = None
         self.id = Node.counter
         Node.counter += 1
 
     def add_child(self, obj):
         if self.children is None:
             self.children = []
+        obj.parent = self
         self.children.append(obj)
 
 def THAID(dictArray, attributeList, keyAttribute):
