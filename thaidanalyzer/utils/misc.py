@@ -47,7 +47,7 @@ def ExtractSheetsFromXLSFile(file):
     book = xlrd.open_workbook(file_contents=file.read())
     return book.sheets()
 
-def RenderTree(tree_head):
+def RenderTree(tree_head, file_format = 'svg'):
     def traverse_tree(node, graph):
         nodeLabel = ""
         if node.data:
@@ -60,6 +60,6 @@ def RenderTree(tree_head):
             graph.edge(str(node.id), str(c.id))
         return node
 
-    g1 = gv.Graph(format='svg')
+    g1 = gv.Graph(format=file_format)
     traverse_tree(tree_head, g1)
     return g1

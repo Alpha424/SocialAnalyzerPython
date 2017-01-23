@@ -5,7 +5,7 @@
       <paths name="reg.ru">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/web/socanal" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

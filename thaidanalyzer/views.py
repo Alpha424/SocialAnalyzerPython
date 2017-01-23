@@ -1,5 +1,5 @@
 import json
-
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from thaidanalyzer.utils.misc import *
@@ -149,6 +149,7 @@ def report(request):
     }
     context['distribution_chart'] = json.dumps(distribution_chart, ensure_ascii=False)
     dotTree = RenderTree(treeHead)
+    context['tree'] = dotTree.pipe(format='svg')
     return render(request, 'report.html', context)
 
 

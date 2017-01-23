@@ -2,12 +2,12 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="0b2d6bf2-ad30-48c7-8412-65566d919e86" name="reg.ru" url="http://socialanalyzer.ru">
-        <fileTransfer host="socialanalyzer.ru" port="21">
+      <webServer id="8178d626-7d09-4044-89a5-0b1eec7b4aac" name="reg.ru" url="http://31.31.202.124">
+        <fileTransfer host="31.31.202.124" port="22" rootFolder="/root" accessType="SFTP">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>
-          <option name="port" value="21" />
+          <option name="port" value="22" />
         </fileTransfer>
       </webServer>
     </option>

@@ -55,14 +55,12 @@ def GetPossibleSplitsForAttribute(dictArray, attribute):
     return list(splits)
 
 def GetSplitRate(dictArray, attribute, keyAttribute, split):
-    assert len(split) >= 2
-    selectionA = FilterDictArrayByAttributeValues(dictArray, attribute, split[0])
-    selectionB = FilterDictArrayByAttributeValues(dictArray, attribute, split[1])
-    n1 = len(selectionA)
-    n2 = len(selectionB)
-    p1 = GetModalRateForAttribute(selectionA, keyAttribute)
-    p2 = GetModalRateForAttribute(selectionB, keyAttribute)
-    rate = n1 * p1 + n2 * p2
+    rate = 0
+    for s in split:
+        selection = FilterDictArrayByAttributeValues(dictArray, attribute, s)
+        n = len(selection)
+        p = GetModalRateForAttribute(selection, keyAttribute)
+        rate += n * p
     return rate
 
 def GetBestSplitDecision(dictArray, attribute, keyAttribute):
@@ -109,7 +107,7 @@ def THAID(dictArray, attributeList, keyAttribute):
     BuildTree(dictArray, attributes, keyAttribute, treeRoot)
     return treeRoot
 
-def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.9):
+def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.8):
     if len(dictArray) == 0:
         return
     if GetModalRateForAttribute(dictArray, keyAttribute) >= modalRateStop:
@@ -133,5 +131,11 @@ def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 
     treenode.add_child(Node((bestAttribute, bestAttributeSplit[0])))
     treenode.add_child(Node((bestAttribute, bestAttributeSplit[1])))
     attributes.remove(bestAttribute)
-    BuildTree(FilterDictArrayByAttributeValues(dictArray, bestAttribute, bestAttributeSplit[0]), attributes, keyAttribute, treenode.children[0])
-    BuildTree(FilterDictArrayByAttributeValues(dictArray, bestAttribute, bestAttributeSplit[1]), attributes, keyAttribute, treenode.children[1])
+    BuildTree(FilterDictArrayByAttributeValues(dictArray, bestAttribute, bestAttributeSplit[0]),
+              attributes,
+              keyAttribute,
+              treenode.children[0])
+    BuildTree(FilterDictArrayByAttributeValues(dictArray, bestAttribute, bestAttributeSplit[1]),
+              attributes,
+              keyAttribute,
+              treenode.children[1])
