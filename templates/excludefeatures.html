@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block title %}Исключение признаков{% endblock %}
+</head>
+<body>
+{% block breadcrumb %}
+    <li>Загрузка файла</li>
+    <li>Ввод имён признаков</li>
+    <li><strong>Исключение признаков</strong></li>
+{% endblock %}
+{% block extra-content-top %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+        <strong>Ошибка: </strong> {{ error }}
+        </div>
+    {% endfor %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+            <strong>Ошибка: </strong> {{ error }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+{% endblock %}
+{% block panel-header %}
+    <h3 class="panel-title">Шаг 3 - исключение признаков</h3>
+{% endblock %}
+{% block panel-body %}
+    <form action="{% url 'excludefeatures' %}" method="post">{% csrf_token %}
+    <p class="text-info">В данном разделе вы можете исключить некоторые признаки из рассмотрения. Из рассмотрения следует исключить количественные признаки.</p>
+    <table class="table">
+    {% for field in form %}
+        <tr>
+        <td>
+            {{ field }} <span class="text-info">{{ field.label }}</span>
+        </td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endblock %}
+{% block panel-footer %}
+    <button type="submit" class="btn btn-primary btn-sm" name="form_proceed" value="proceed">Далее</button>
+    </form>
+{% endblock %}
+</body>
+</html>

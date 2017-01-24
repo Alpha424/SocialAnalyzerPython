@@ -40,6 +40,14 @@ class EnterAttributesForm(forms.Form):
             self.fields['arg%s' % i] = forms.CharField(max_length=64, min_length=1, required=False)
             self.fields['arg%s' % i].widget.attrs.update({'class' : 'form-control'})
 
+class ExcludeFeaturesForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        attributes = kwargs.pop('attrs')
+        super(ExcludeFeaturesForm, self).__init__(*args, **kwargs)
+        for a in attributes:
+            self.fields[a] = forms.BooleanField(label=a, required=False)
+
+
 class SelectKeyAttributeForm(forms.Form):
     def __init__(self, *args, **kwargs):
         attributes = kwargs.pop('attributes')

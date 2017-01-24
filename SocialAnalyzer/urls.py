@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^csvoptions/$', views.csvoptions, name='csvoptions'),
     url(r'^xlsoptions/$', views.xlsoptions, name='xlsoptions'),
     url(r'^enterattributes/$', views.enterattributes, name='enterattributes'),
+    url(r'^excludefeatures/$', views.excludeFeatures, name='excludefeatures'),
     url(r'^selectkeyattribute/$', views.selectkeyattribute, name='selectkeyattribute'),
     url(r'^report/$', views.report, name='report')
 ]

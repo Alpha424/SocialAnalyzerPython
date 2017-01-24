@@ -1,10 +1,7 @@
 import csv
 import xlrd
 import graphviz as gv
-
 from thaidanalyzer.utils.algorithm import FilterSetByTreePath
-
-
 class FileEmptyError(Exception):
     def __init__(self, value):
         self.value = value
@@ -58,6 +55,7 @@ def RenderTree(tree_head, dictArray, file_format = 'svg'):
         else:
             nodeLabel = str(len(dictArray))
         graph.node(str(node.id), label=nodeLabel)
+
         if not node.children:
             return node
         for child in node.children:

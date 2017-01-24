@@ -1,4 +1,7 @@
 import json
+from itertools import compress
+
+import itertools
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -89,10 +92,27 @@ def enterattributes(request):
             request.session['dictArray'] = dictArray
             request.session['attributes'] = attributes
             del request.session['data']
-            return HttpResponseRedirect('/selectkeyattribute/')
+            return HttpResponseRedirect('/excludefeatures/')
         else:
             form.add_error(None, 'Имена признаков не могут повторяться')
     return render(request, 'enterattributes.html', {'form' : form})
+
+def excludeFeatures(request):
+    if not (request.session.get('dictArray') or request.session.get('attributes')):
+        return HttpResponseRedirect('/start/')
+    attributes = request.session.get('attributes')
+    form = ExcludeFeaturesForm(request.POST or None, attrs=attributes)
+    if form.is_valid():
+        to_exclude = []
+        for key, val in form.cleaned_data.items():
+            if val:
+                to_exclude.append(key)
+        if len(attributes) - len(to_exclude) < 2:
+            form.add_error(None, 'Для работы алгоритма требуется как минимум 2 признака')
+            return render(request, 'excludefeatures.html', {'form': form})
+        request.session['attributes'] = list(itertools.filterfalse(lambda e: e in to_exclude, attributes))
+        return HttpResponseRedirect('/selectkeyattribute/')
+    return render(request, 'excludefeatures.html', {'form' : form})
 
 def selectkeyattribute(request):
     if not(request.session.get('dictArray') or request.session.get('attributes')):
