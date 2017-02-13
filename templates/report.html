@@ -8,21 +8,31 @@
         <script src="{% static 'highcharts/code/highcharts.js' %}"></script>
         <script src="{% static 'highcharts/code/modules/exporting.js' %}"></script>
         <script>
-        Highcharts.setOptions({
-            lang: {
-                downloadJPEG: "Загрузить в формате JPEG",
-                downloadPDF: "Загрузить в формате PDF",
-                downloadPNG: "Загрузить в формате PNG",
-                downloadSVG: "Загрузить в формате SVG",
-                printChart: "Печать графика"
+            Highcharts.setOptions({
+                lang: {
+                    downloadJPEG: "Загрузить в формате JPEG",
+                    downloadPDF: "Загрузить в формате PDF",
+                    downloadPNG: "Загрузить в формате PNG",
+                    downloadSVG: "Загрузить в формате SVG",
+                    printChart: "Печать графика"
+                }
+            });
+            $(function () {
+                Highcharts.chart('plot_container', {{ distribution_chart | safe }});
+            });
+        </script>
+        <script>
+            function printDiv(divID) {
+                var divElements = document.getElementById(divID).innerHTML;
+                var oldPage = document.body.innerHTML;
+                document.body.innerHTML =
+                  "<html><head><title></title></head><body>" +
+                  divElements + "</body>";
+                window.print();
+                document.body.innerHTML = oldPage;
             }
-        });
-        $(function () {
-            Highcharts.chart('plot_container', {{ distribution_chart | safe }});
-        });
         </script>
     {% endblock %}
-
     {% block title %}Отчёт{% endblock %}
 </head>
 <body>
@@ -46,15 +56,14 @@
             </div>
         {% endfor %}
     {% endfor %}
+
 {% endblock %}
 {% block panel-header %}
     <h3 class="panel-title">Отчёт</h3>
 {% endblock %}
-
 {% block panel-body %}
-
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-xs-12" id="report">
             <div class="panel panel-default">
                 <div class="panel-body">
                     <div class="col-xs-6 col-sm-4">
@@ -75,21 +84,21 @@
                 <div class="panel-body" id="plot_container" style="width:100%; height:100%;">
                 </div>
             </div>
-
             <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Дерево разбиений</h3>
-            </div>
-            <div class="panel-body text-center" style="overflow: auto; height: 100%; width: 100%;">
-                {{ tree | safe }}
+                <div class="panel-heading">
+                    <h3 class="panel-title">Дерево разбиений</h3>
+                </div>
+                <div class="panel-body text-center" style="overflow: auto; height: 100%; width: 100%;">
+                    {{ tree | safe }}
+                </div>
             </div>
         </div>
-        </div>
-
     </div>
-
 {% endblock %}
 {% block panel-footer %}
+    <button class="btn btn-default btn-sm center-block" onclick="printDiv('report')">
+        <span class="glyphicon glyphicon-print"></span>
+        Печать отчёта</button>
 {% endblock %}
 </body>
 </html>
