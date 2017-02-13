@@ -171,5 +171,3 @@ def report(request):
     dotTree = RenderTree(treeHead, dictArray)
     context['tree'] = dotTree.pipe(format='svg')
     return render(request, 'report.html', context)
-
-

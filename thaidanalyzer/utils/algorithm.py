@@ -115,7 +115,7 @@ def THAID(dictArray, attributeList, keyAttribute):
         raise Exception('No attributes given')
     if keyAttribute is None:
         raise Exception('No key attribute given')
-    if len(attributeList) == 0:
+    if not attributeList:
         return
     attributes = list(attributeList)
     if keyAttribute in attributes:
@@ -125,7 +125,7 @@ def THAID(dictArray, attributeList, keyAttribute):
     return treeRoot
 
 def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.8):
-    if len(dictArray) == 0:
+    if not dictArray:
         return
     if GetModalRateForAttribute(dictArray, keyAttribute) >= modalRateStop:
         return
@@ -148,11 +148,6 @@ def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 
     treenode.add_child(Node((bestAttribute, bestAttributeSplit[0])))
     treenode.add_child(Node((bestAttribute, bestAttributeSplit[1])))
     attributes.remove(bestAttribute)
-    BuildTree(FilterDictArrayByAttributeValues(dictArray, bestAttribute, bestAttributeSplit[0]),
-              attributes,
-              keyAttribute,
-              treenode.children[0])
-    BuildTree(FilterDictArrayByAttributeValues(dictArray, bestAttribute, bestAttributeSplit[1]),
-              attributes,
-              keyAttribute,
-              treenode.children[1])
+    slices = (FilterDictArrayByAttributeValues(dictArray, bestAttribute, split_part) for split_part in bestAttributeSplit)
+    for idx, slice in enumerate(slices):
+        BuildTree(slice, attributes, keyAttribute, treenode.children[idx])
