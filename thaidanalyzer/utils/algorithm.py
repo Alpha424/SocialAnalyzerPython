@@ -151,3 +151,11 @@ def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 
     slices = (FilterDictArrayByAttributeValues(dictArray, bestAttribute, split_part) for split_part in bestAttributeSplit)
     for idx, slice in enumerate(slices):
         BuildTree(slice, attributes, keyAttribute, treenode.children[idx])
+
+def GetFinaleGroupNumber(node):
+    c = 0
+    if not node.children:
+        return 1
+    for child in node.children:
+        c += GetFinaleGroupNumber(child)
+    return c

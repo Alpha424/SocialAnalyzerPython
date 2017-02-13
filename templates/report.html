@@ -54,16 +54,28 @@
 {% block panel-body %}
 
     <div class="row">
-        <div class="col-xs-3">
-            <h3 class="text-primary text-center">{{ series_len }}</h3>
-            <h5 class="text-center">Количество наблюдений</h5>
-
-        </div>
-        <div class="col-xs-9">
+        <div class="col-xs-12">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="col-xs-6 col-sm-4">
+                        <h3 class="text-primary text-center">{{ series_len }}</h3>
+                        <h5 class="text-center">Количество наблюдений</h5>
+                    </div>
+                    <div class="col-xs-6 col-sm-4">
+                        <h3 class="text-primary text-center">{{ features_num }}</h3>
+                        <h5 class="text-center">Количество признаков</h5>
+                    </div>
+                    <div class="col-xs-6 col-sm-4">
+                        <h3 class="text-primary text-center">{{ groups_num }}</h3>
+                        <h5 class="text-center">Количество найденных групп</h5>
+                    </div>
+                </div>
+            </div>
             <div class="panel panel-default" style="width:100%; height:400px;">
                 <div class="panel-body" id="plot_container" style="width:100%; height:100%;">
                 </div>
             </div>
+
             <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">Дерево разбиений</h3>

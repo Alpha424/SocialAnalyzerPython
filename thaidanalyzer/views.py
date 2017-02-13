@@ -140,6 +140,8 @@ def report(request):
     treeHead = THAID(dictArray, attributes, keyattribute)
     context = {}
     context['series_len'] = len(dictArray)
+    context['features_num'] = len(attributes)
+    context['groups_num'] = GetFinaleGroupNumber(treeHead)
     distribution_chart = {
         'chart': {
             'plotBackgroundColor': 'white',
