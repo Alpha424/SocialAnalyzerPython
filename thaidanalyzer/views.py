@@ -141,7 +141,7 @@ def report(request):
     context = {}
     context['series_len'] = len(dictArray)
     context['features_num'] = len(attributes)
-    context['groups_num'] = GetFinaleGroupNumber(treeHead)
+    context['groups_num'] = GetTreeLeavesNumber(treeHead)
     distribution_chart = {
         'chart': {
             'plotBackgroundColor': 'white',
@@ -169,7 +169,38 @@ def report(request):
             'data': [{'name': key, 'y': val} for key, val in EvaluateDistribution(dictArray, keyattribute).items()]
         }]
     }
+    groups_charts = []
+    groups = GetTreeLeaves(treeHead)
+    c = 1
+    for group in groups:
+        slice = FilterSetByTreePath(dictArray, group)
+        dist_in_group = EvaluateDistribution(slice, keyattribute, percentage=False)
+        chart = {
+            'chart' : {
+                'type' : 'column'
+            },
+            'title' : {
+                'text' : 'Распределение ключевого признака в группе %d' % c
+            },
+            'subtitle' : {
+                'text' : ' | '.join(GetTreePathAsList(group))
+            },
+            'xAxis' : {
+                'categories' : list(dist_in_group.keys())
+            },
+            'yAxis' : {
+                'title' : 'Кол-во наблюдений'
+            },
+            'series' : [{
+                'data' : list(dist_in_group.values()),
+                'name' : 'Группа %d' % c
+            }]
+        }
+        c += 1
+        groups_charts.append(json.dumps(chart, ensure_ascii=False))
+
     context['distribution_chart'] = json.dumps(distribution_chart, ensure_ascii=False)
+    context['groups_charts'] = groups_charts
     dotTree = RenderTree(treeHead, dictArray)
     context['tree'] = dotTree.pipe(format='svg')
     return render(request, 'report.html', context)

@@ -7,12 +7,14 @@ def FilterDictArrayByAttributeValues(dictArray, attribute, possibleValues):
     res = filter(lambda d: d[attribute] in possibleValues, dictArray)
     return list(res)
 
-def EvaluateDistribution(dictArray, keyAttribute):
+def EvaluateDistribution(dictArray, keyAttribute, percentage = True):
     res = {}
     N = len(dictArray)
     possibleValues = GetPossibleValuesForAttribute(dictArray, keyAttribute)
     for value in possibleValues:
-        res[value] = len([x for x in dictArray if x[keyAttribute] == value]) / N
+        res[value] = len([x for x in dictArray if x[keyAttribute] == value])
+        if percentage:
+            res[value] /= N
     return res
 
 def GetModalValueForAttribute(dictArray, attribute):
@@ -152,10 +154,40 @@ def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 
     for idx, slice in enumerate(slices):
         BuildTree(slice, attributes, keyAttribute, treenode.children[idx])
 
-def GetFinaleGroupNumber(node):
+def GetTreeLeaves(tree_head):
+    if not tree_head:
+        return None
+    def go_deep(curr_node, leaves):
+        if not curr_node.children:
+            leaves.append(curr_node)
+            return
+        for child in curr_node.children:
+            go_deep(child, leaves)
+    leaves = []
+    go_deep(tree_head, leaves)
+    return leaves
+
+def GetTreeLeavesNumber(tree_head):
+    if not tree_head:
+        return 0
     c = 0
-    if not node.children:
+    if not tree_head.children:
         return 1
-    for child in node.children:
-        c += GetFinaleGroupNumber(child)
+    for child in tree_head.children:
+        c += GetTreeLeavesNumber(child)
     return c
+
+def GetTreePathAsList(node, start_at_head = True):
+    def go_up(node):
+        if not node.data:
+            return
+        path.append("%s : %s" % (node.data[0], ', '.join(node.data[1])))
+        if node.parent:
+            go_up(node.parent)
+    if not node:
+        return None
+    path = []
+    go_up(node)
+    if start_at_head:
+        path.reverse()
+    return path

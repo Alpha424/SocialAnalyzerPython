@@ -19,6 +19,9 @@
             });
             $(function () {
                 Highcharts.chart('plot_container', {{ distribution_chart | safe }});
+                {% for group_chart in groups_charts %}
+                    Highcharts.chart('group_{{ forloop.counter0 }}', {{ group_chart | safe }});
+                {% endfor %}
             });
         </script>
         <script>
@@ -62,8 +65,8 @@
     <h3 class="panel-title">Отчёт</h3>
 {% endblock %}
 {% block panel-body %}
-    <div class="row">
-        <div class="col-xs-12" id="report">
+    <div class="row" id="report">
+        <div class="col-xs-12">
             <div class="panel panel-default">
                 <div class="panel-body">
                     <div class="col-xs-6 col-sm-4">
@@ -92,7 +95,18 @@
                     {{ tree | safe }}
                 </div>
             </div>
+
         </div>
+        {% for chart in groups_charts %}
+            <div class="col-xs-6">
+               <div class="panel panel-default">
+                 <div class="panel-body" id="group_{{ forloop.counter0 }}">
+
+                 </div>
+               </div>
+            </div>
+        {% endfor %}
+
     </div>
 {% endblock %}
 {% block panel-footer %}
