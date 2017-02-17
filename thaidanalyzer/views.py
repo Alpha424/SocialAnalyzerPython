@@ -179,6 +179,13 @@ def report(request):
             'chart' : {
                 'type' : 'column'
             },
+            'plotOptions': {
+                'column' : {
+                    'dataLabels' : {
+                        'enabled' : 'true'
+                    }
+                }
+            },
             'title' : {
                 'text' : 'Распределение ключевого признака в группе %d' % c
             },
