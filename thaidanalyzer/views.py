@@ -1,8 +1,5 @@
 import json
-from itertools import compress
-
 import itertools
-from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from thaidanalyzer.utils.misc import *

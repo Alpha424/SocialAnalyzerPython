@@ -2,17 +2,6 @@ import csv
 import xlrd
 import graphviz as gv
 from thaidanalyzer.utils.algorithm import FilterSetByTreePath
-class FileEmptyError(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
-
-class FileStructureError(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
 
 def ConvertRawDataToDictArray(data, attributes, usefirstrowvalues = False):
     dictArray = []
@@ -24,24 +13,26 @@ def ConvertRawDataToDictArray(data, attributes, usefirstrowvalues = False):
         dictArray.append(dict)
     return dictArray
 
+def CheckTable(table):
+    if not table:
+        raise Exception("Входной файл пуст")
+    rowLen = len(table[0])
+    for row in table:
+        if len(row) != rowLen or any(not x for x in row):
+            raise Exception("Входной файл имел неправильную структуру")
+        rowLen = len(row)
+
+
 def ParseCSVFile(file, separator=',', codec = 'utf8'):
-    if len(file) == 0:
-        raise FileEmptyError("Входной файл пуст")
     data = [row for row in csv.reader(file.read().decode(codec).splitlines(), delimiter=separator)]
-    if len(data) == 0:
-        raise FileEmptyError("Входной файл не содержит строк")
-    colNum = len(data[0])
-    for row in data:
-        if len(row) != colNum:
-            raise FileStructureError("Входной файл имел неправильную структуру")
+    CheckTable(data)
     return data
 
 def ParseXLSFile(sheet):
     data = []
     for row in sheet.get_rows():
         data.append([cell.value for cell in row])
-    if len(data) == 0:
-        raise FileEmptyError("Таблица не содержит строк")
+    CheckTable(data)
     return data
 
 def ExtractSheetsFromXLSFile(file):
