@@ -28,7 +28,7 @@
 {% endblock %}
 {% block panel-body %}
     <form action="{% url 'xlsoptions' %}" method="post">{% csrf_token %}
-    <p>Выберите таблицу книги Excel для извлечения значений</p>
+    <p>Выберите лист книги Excel для извлечения значений</p>
     {{ form.sheet_selection }}
 {% endblock %}
 {% block panel-footer %}

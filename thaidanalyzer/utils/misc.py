@@ -58,3 +58,4 @@ def RenderTree(tree_head, dictArray, file_format = 'svg'):
     g1 = gv.Graph(format=file_format)
     lookup_down(tree_head, g1)
     return g1
+

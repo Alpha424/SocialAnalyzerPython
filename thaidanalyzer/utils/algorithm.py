@@ -26,7 +26,6 @@ def GetModalRateForAttribute(dictArray, attribute):
     maxKey = max(dist, key=dist.get)
     return dist[maxKey]
 
-
 def GetPossibleSplitsForAttribute(dictArray, attribute):
     def sorted_k_partitions(seq, k):
         n = len(seq)
@@ -126,7 +125,7 @@ def THAID(dictArray, attributeList, keyAttribute):
     BuildTree(dictArray, attributes, keyAttribute, treeRoot)
     return treeRoot
 
-def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.8):
+def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.9):
     if not dictArray:
         return
     if GetModalRateForAttribute(dictArray, keyAttribute) >= modalRateStop:

@@ -1,12 +1,17 @@
+import xlrd
+import csv
 from django import forms
 
 
-def validate_file_extension(value):
-    if not (value.name.endswith('.csv') or value.name.endswith('.xls') or value.name.endswith('.xlsx')):
-        raise forms.ValidationError('Неправильный формат файла')
+def validate_file_extension(file):
+    ALLOWED_EXTENSIONS = ['.csv', '.xls', '.xlsx']
+    for ext in ALLOWED_EXTENSIONS:
+        if file.name.endswith(ext):
+            return
+    raise forms.ValidationError('Неправильный формат файла')
 
 class FileUploadForm(forms.Form):
-    file = forms.FileField(label='', validators=[validate_file_extension])
+    file = forms.FileField(label='', validators=[validate_file_extension,])
 
 class CSVOptionsForm(forms.Form):
     SEPARATOR_CHOICES = (
