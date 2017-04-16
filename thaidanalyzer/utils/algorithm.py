@@ -180,7 +180,7 @@ def GetTreePathAsList(node, start_at_head = True):
     def go_up(node):
         if not node.data:
             return
-        path.append("%s : %s" % (node.data[0], ', '.join(node.data[1])))
+        path.append("%s : %s" % (str(node.data[0]), ', '.join([str(x) for x in node.data[1]])))
         if node.parent:
             go_up(node.parent)
     if not node:

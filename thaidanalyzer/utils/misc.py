@@ -42,7 +42,7 @@ def ExtractSheetsFromXLSFile(file):
 def RenderTree(tree_head, dictArray, file_format = 'svg'):
     def lookup_down(node, graph):
         if node.data:
-            nodeLabel = str(node.data[0]) + ": " + ', '.join(node.data[1])
+            nodeLabel = str(node.data[0]) + ": " + ', '.join([str(x) for x in node.data[1]])
         else:
             nodeLabel = str(len(dictArray))
         graph.node(str(node.id), label=nodeLabel)
