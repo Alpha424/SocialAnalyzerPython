@@ -1,5 +1,3 @@
-import xlrd
-import csv
 from django import forms
 
 
@@ -59,3 +57,7 @@ class SelectKeyAttributeForm(forms.Form):
         super(SelectKeyAttributeForm, self).__init__(*args, **kwargs)
         self.fields['key_attribute_selection'] = forms.ChoiceField(choices=[(idx, a) for idx, a in enumerate(attributes)])
         self.fields['key_attribute_selection'].widget.attrs.update({'class' : 'form-control'})
+
+class MethodSelectionForm(forms.Form):
+    method = forms.ChoiceField(choices=(('THAID', 'THAID'), ('CHAID', 'CHAID'),))
+    method.widget.attrs.update({'class' : 'form-control'})

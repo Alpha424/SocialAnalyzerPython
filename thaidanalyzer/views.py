@@ -123,22 +123,45 @@ def selectkeyattribute(request):
         try:
             keyAttributeIndex = int(form.cleaned_data.get('key_attribute_selection'))
             request.session['keyattribute'] = attributes[keyAttributeIndex]
-            return HttpResponseRedirect('/report/')
+            return HttpResponseRedirect('/selectmethod/')
         except Exception as e:
             form.add_error(None, str(e))
     return render(request, 'selectkeyattribute.html', {'form': form})
 
+def selectmethod(request):
+    if not(request.session.get('dictArray')
+           or request.session.get('attributes')
+           or request.get('keyattribute')):
+        return HttpResponseRedirect('/start/')
+    form = MethodSelectionForm(request.POST or None)
+    if form.is_valid() and form.cleaned_data.get('method'):
+        try:
+            request.session['method'] = form.cleaned_data.get('method')
+            return HttpResponseRedirect('/report/')
+        except Exception as e:
+            form.add_error(None, str(e))
+    return render(request, 'selectmethod.html', {'form' : form})
 def report(request):
-    if not (request.session.get('dictArray') or request.session.get('attributes') or request.session.get('keyattribute')):
+    if not (request.session.get('dictArray')
+            or request.session.get('attributes')
+            or request.session.get('keyattribute')
+            or request.session.get('method')):
         return HttpResponseRedirect('/start/')
     dictArray = request.session.get('dictArray')
     attributes = request.session.get('attributes')
     keyattribute = request.session.get('keyattribute')
-    treeHead = THAID(dictArray, attributes, keyattribute)
+    method = request.session.get('method')
+    TreeBuilder = None
+    if method == 'THAID':
+        TreeBuilder = THAIDTreeBuilder(dictArray, attributes, keyattribute)
+    else:
+        TreeBuilder = ExternalCHAIDTreeBuilder(dictArray, attributes, keyattribute)
+    treeHead = TreeBuilder.BuildTree()
     context = {}
     context['series_len'] = len(dictArray)
     context['features_num'] = len(attributes)
     context['groups_num'] = GetTreeLeavesNumber(treeHead)
+    context['method'] = method
     distribution_chart = {
         'chart': {
             'plotBackgroundColor': 'white',

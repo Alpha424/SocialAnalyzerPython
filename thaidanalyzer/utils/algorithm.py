@@ -1,3 +1,6 @@
+import json
+import requests
+
 def GetPossibleValuesForAttribute(dictArray, attribute):
     values = set()
     for e in dictArray:
@@ -109,49 +112,103 @@ class Node(object):
         obj.parent = self
         self.children.append(obj)
 
-def THAID(dictArray, attributeList, keyAttribute):
-    if dictArray is None:
-        raise Exception('Null set')
-    if attributeList is None:
-        raise Exception('No attributes given')
-    if keyAttribute is None:
-        raise Exception('No key attribute given')
-    if not attributeList:
-        return
-    attributes = list(attributeList)
-    if keyAttribute in attributes:
-        attributes.remove(keyAttribute)
-    treeRoot = Node(None)
-    BuildTree(dictArray, attributes, keyAttribute, treeRoot)
-    return treeRoot
+class AbstractTreeBuilder(object):
+    def __init__(self, dataset, attributes, keyAttribute):
+        self.dataset = dataset
+        self.attributes = attributes
+        self.keyAttribute = keyAttribute
 
-def BuildTree(dictArray, attributeList, keyAttribute, treenode, modalRateStop = 0.9):
-    if not dictArray:
-        return
-    if GetModalRateForAttribute(dictArray, keyAttribute) >= modalRateStop:
-        return
-    attributes = list(attributeList)
-    for a in attributes:
-        if not GetPossibleSplitsForAttribute(dictArray, a):
-            attributes.remove(a)
-    if not attributes:
-        return
-    bestAttribute = None
-    bestAttributeSplitRate = -1
-    bestAttributeSplit = None
-    for a in attributes:
-        attributeBestSplit = GetBestSplitDecision(dictArray, a, keyAttribute)
-        attributeBestSplitRate = GetSplitRate(dictArray, a, keyAttribute, attributeBestSplit)
-        if(attributeBestSplitRate > bestAttributeSplitRate):
-            bestAttribute = a
-            bestAttributeSplitRate = attributeBestSplitRate
-            bestAttributeSplit = attributeBestSplit
-    treenode.add_child(Node((bestAttribute, bestAttributeSplit[0])))
-    treenode.add_child(Node((bestAttribute, bestAttributeSplit[1])))
-    attributes.remove(bestAttribute)
-    slices = (FilterDictArrayByAttributeValues(dictArray, bestAttribute, split_part) for split_part in bestAttributeSplit)
-    for idx, slice in enumerate(slices):
-        BuildTree(slice, attributes, keyAttribute, treenode.children[idx])
+    def BuildTree(self):
+        if not self.dataset:
+            raise Exception("Empty data set")
+        if not self.attributes:
+            raise Exception("No attributes given")
+        if not self.keyAttribute:
+            raise Exception('No key attribute given')
+
+
+
+class THAIDTreeBuilder(AbstractTreeBuilder):
+    @staticmethod
+    def Build_Recursive(dictArray, attributeList, keyAttribute, treenode, modalRateStop=0.9):
+        if not dictArray:
+            return
+        if GetModalRateForAttribute(dictArray, keyAttribute) >= modalRateStop:
+            return
+        attributes = list(attributeList)
+        for a in attributes:
+            if not GetPossibleSplitsForAttribute(dictArray, a):
+                attributes.remove(a)
+        if not attributes:
+            return
+        bestAttribute = None
+        bestAttributeSplitRate = -1
+        bestAttributeSplit = None
+        for a in attributes:
+            attributeBestSplit = GetBestSplitDecision(dictArray, a, keyAttribute)
+            attributeBestSplitRate = GetSplitRate(dictArray, a, keyAttribute, attributeBestSplit)
+            if (attributeBestSplitRate > bestAttributeSplitRate):
+                bestAttribute = a
+                bestAttributeSplitRate = attributeBestSplitRate
+                bestAttributeSplit = attributeBestSplit
+        treenode.add_child(Node((bestAttribute, bestAttributeSplit[0])))
+        treenode.add_child(Node((bestAttribute, bestAttributeSplit[1])))
+        attributes.remove(bestAttribute)
+        slices = (FilterDictArrayByAttributeValues(dictArray, bestAttribute, split_part) for split_part in
+                  bestAttributeSplit)
+        for idx, slice in enumerate(slices):
+            THAIDTreeBuilder.Build_Recursive(slice, attributes, keyAttribute, treenode.children[idx])
+    def BuildTree(self):
+        AbstractTreeBuilder.BuildTree(self)
+        if self.keyAttribute in self.attributes:
+            self.attributes.remove(self.keyAttribute)
+        treeRoot = Node(None)
+        THAIDTreeBuilder.Build_Recursive(self.dataset, self.attributes, self.keyAttribute, treeRoot)
+        return treeRoot
+
+class ExternalCHAIDTreeBuilder(AbstractTreeBuilder):
+    @staticmethod
+    def RestoreTreeFromRawDict(dict):
+        def build_tree(node, d):
+            feature = d.get('feature')
+            values = d.get('values')
+            if feature and values:
+                node.data = (feature, values)
+            for ch in ['child1', 'child2']:
+                if d.get(ch):
+                    newChild = Node(None)
+                    node.add_child(newChild)
+                    build_tree(newChild, d.get(ch))
+        root = Node(None)
+        build_tree(root, dict)
+        return root
+    def ExcludeRedundantFeaturesFromSet(self):
+        cleaned_set = []
+        for d in self.dataset:
+            nd = {}
+            for k, v in d.items():
+                if k in self.attributes:
+                    nd[k] = v
+            cleaned_set.append(nd)
+        self.dataset = cleaned_set
+
+    def BuildTree(self):
+        self.ExcludeRedundantFeaturesFromSet()
+        data = {'dataset' : self.dataset, 'key_attribute' : self.keyAttribute}
+        encoded_data = json.dumps(data, ensure_ascii=False)
+        encoded_data = "'" + str(encoded_data) + "'"
+        headers = {'User-Agent' : 'SocialAnalyzer',
+                   'Content-Type': 'application/json; charset=utf-8',
+                   }
+        response = requests.post('http://webapplication120170514044253.azurewebsites.net/api/Default1',
+                                 data=encoded_data.encode('utf-8'),
+                                 headers=headers
+                                 )
+        if not response.ok:
+            raise Exception("External system error")
+        raw_dict = json.loads(response.json(), encoding=response.encoding)
+        return ExternalCHAIDTreeBuilder.RestoreTreeFromRawDict(raw_dict)
+
 
 def GetTreeLeaves(tree_head):
     if not tree_head:

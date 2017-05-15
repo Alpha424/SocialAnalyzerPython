@@ -26,5 +26,6 @@ urlpatterns = [
     url(r'^enterattributes/$', views.enterattributes, name='enterattributes'),
     url(r'^excludefeatures/$', views.excludeFeatures, name='excludefeatures'),
     url(r'^selectkeyattribute/$', views.selectkeyattribute, name='selectkeyattribute'),
+    url(r'^selectmethod/$', views.selectmethod, name='selectmethod'),
     url(r'^report/$', views.report, name='report')
 ]
